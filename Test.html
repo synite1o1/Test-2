@@ -23,20 +23,65 @@
     </div>
 
     <div class="main">
-        <h2>Test Your ASL Knowledge</h2>
+        <div>Teachable Machine Image Model</div>
+        <button type="button" onclick="init()">Start</button>
+        <div id="webcam-container"></div>
+        <div id="label-container"></div>
         
-        <!-- Ready Button -->
-        <button id="readyButton" onclick="startCountdown()">Ready</button>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
         
-        <!-- Countdown and letter display -->
-        <div id="countdown" class="countdown"></div>
-        <div id="letterDisplay" class="letter-display"></div>
-
-        <!-- Options for guessing -->
-        <div id="options" class="options"></div>
-
-        <!-- Score and try again message -->
-        <div id="result" class="result"></div>
+        <script type="text/javascript">
+            // the link to your model provided by Teachable Machine export panel
+            const URL = "https://teachablemachine.withgoogle.com/models/8zoA40e9w/";
+        
+            let model, webcam, labelContainer, maxPredictions;
+        
+            // Load the image model and setup the webcam
+            async function init() {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+        
+                // load the model and metadata
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+        
+                // Setup webcam
+                const flip = true; // whether to flip the webcam
+                webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+                await webcam.setup(); // request access to the webcam
+                await webcam.play();
+                window.requestAnimationFrame(loop);
+        
+                // Append webcam canvas to DOM
+                document.getElementById("webcam-container").appendChild(webcam.canvas);
+                labelContainer = document.getElementById("label-container");
+            }
+        
+            async function loop() {
+                webcam.update(); // update the webcam frame
+                await predict();
+                window.requestAnimationFrame(loop);
+            }
+        
+            // Run the webcam image through the image model
+            async function predict() {
+                // Predict the current frame from the webcam
+                const prediction = await model.predict(webcam.canvas);
+                
+                // Find the prediction with the highest probability
+                let maxPrediction = prediction[0];
+                for (let i = 1; i < maxPredictions; i++) {
+                    if (prediction[i].probability > maxPrediction.probability) {
+                        maxPrediction = prediction[i];
+                    }
+                }
+        
+                // Display the highest probability prediction
+                labelContainer.innerHTML = `${maxPrediction.className}: ${maxPrediction.probability.toFixed(2)}`;
+            }
+        </script>
+        
     </div>
 
     <script src="script.js"></script>
