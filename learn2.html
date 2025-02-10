@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style2.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test ASL Alphabet</title>
+    <title>Sign Language Quiz</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header class="topbar">
@@ -15,30 +15,22 @@
             <a href="Test.html" aria-label="Go to Test page">Test</a>
         </nav>
     </header>
-    
     <div class="sidenav">
+        
         <a href="learn.html">Learn</a>
         <a href="learn2.html">Practice</a>
         <a href="Test.html">Test</a>
     </div>
-
-    <div class="main">
-        <h2>Test Your ASL Knowledge</h2>
-        
-        <!-- Ready Button -->
-        <button id="readyButton" onclick="startCountdown()">Ready</button>
-        
-        <!-- Countdown and letter display -->
-        <div id="countdown" class="countdown"></div>
-        <div id="letterDisplay" class="letter-display"></div>
-
-        <!-- Options for guessing -->
-        <div id="options" class="options"></div>
-
-        <!-- Score and try again message -->
-        <div id="result" class="result"></div>
+    <div class="container">
+        <h1>Sign Language Quiz</h1>
+        <button id="readyButton">Ready</button>
+        <h2 id="countdown"></h2>
+        <h2 id="question"></h2>
+        <img id="signImage" src="" alt="Sign" style="display: none;">
+        <div id="options"></div>
+        <p id="resultMessage"></p>
+        <h2 id="finalScore" style="display: none;"></h2>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
