@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Prediction</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Sign Language Letter Prediction</h1>
+    
+    <!-- Display Random Letter -->
+    <div id="letterDisplay">?</div>
+
+    <!-- Start button to trigger the prediction -->
+    <button id="readyButton">Ready</button>
+
+    <!-- Webcam container -->
+    <div id="webcam-container"></div>
+
+    <!-- Display the prediction result -->
+    <div id="label-container"></div>
+
+    <!-- Display confirmation message -->
+    <div id="confirmation">Correct!</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+    <script type="text/javascript">
+        // The URL to the Teachable Machine model
+        const URL = "https://teachablemachine.withgoogle.com/models/8zoA40e9w/"; // Replace with your model's URL
+
+        let model, webcam, labelContainer, maxPredictions, currentLetter, isReady = false;
+
+        // Initialize the AI model and webcam
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            // Load model and metadata from Teachable Machine
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Set up webcam
+            const flip = true; // Whether to flip the webcam image
+            webcam = new tmImage.Webcam(200, 200, flip); // Webcam dimensions
+            await webcam.setup(); // Request webcam access
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            // Append the webcam canvas to the DOM
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+
+            // Hide the "Correct!" message initially
+            document.getElementById("confirmation").style.display = "none";
+        }
+
+        async function loop() {
+            if (isReady) {
+                webcam.update(); // Update webcam frame
+                await predict();
+            }
+            window.requestAnimationFrame(loop); // Continue the loop
+        }
+
+        // Run the webcam image through the AI model
+        async function predict() {
+            // Predict the current webcam frame
+            const prediction = await model.predict(webcam.canvas);
+
+            // Find the prediction with the highest probability
+            let maxPrediction = prediction[0];
+            for (let i = 1; i < maxPredictions; i++) {
+                if (prediction[i].probability > maxPrediction.probability) {
+                    maxPrediction = prediction[i];
+                }
+            }
+
+            // Display the highest probability prediction
+            labelContainer.innerHTML = `${maxPrediction.className}: ${maxPrediction.probability.toFixed(2)}`;
+
+            // Check if the AI prediction matches the displayed letter
+            if (maxPrediction.className === currentLetter) {
+                // Show "Correct!" message for 1 second if the prediction matches
+                document.getElementById("confirmation").style.display = "block";
+                setTimeout(() => {
+                    document.getElementById("confirmation").style.display = "none";
+                    displayRandomLetter(); // Change the random letter after showing "Correct!"
+                }, 1000);
+            }
+        }
+
+        // Display a random letter for the user to sign
+        function displayRandomLetter() {
+            const letters = ['a', 'b', 'c', 'd', 'e']; // The set of possible letters
+            currentLetter = letters[Math.floor(Math.random() * letters.length)];
+            document.getElementById("letterDisplay").innerText = currentLetter;
+        }
+
+        // Event listener for the "Ready" button
+        document.getElementById("readyButton").addEventListener("click", function() {
+            if (!isReady) {
+                isReady = true;
+                this.innerText = "Started"; // Change button text after clicking
+                displayRandomLetter(); // Show the first random letter
+            }
+        });
+
+        // Initialize the app when the page loads
+        window.onload = init;
+    </script>
+</body>
+</html>
